@@ -1,4 +1,4 @@
 package project;
 
-public class UI {
+public class Chef {
 }
