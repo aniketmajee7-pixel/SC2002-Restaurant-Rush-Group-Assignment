@@ -12,6 +12,22 @@ public class CustomerManager {
         record = rec;
     }
 
+    public void update(){
+        for (Customer c : record){
+            if (c.getStatus() == CustomerStatus.SERVED){
+                c.setStatus(CustomerStatus.EATING);
+            }
+            if (c.getStatus() == CustomerStatus.EATING){
+                c.setStatus(CustomerStatus.READY_TO_PAY);
+            }
+            if (c.getStatus() == CustomerStatus.QUEUED ||
+                c.getStatus() == CustomerStatus.READY_TO_ORDER||
+                c.getStatus() == CustomerStatus.ORDERED){
+                c.irritate();
+            }
+        }
+    }
+
     private Customer spawnCustomer(Queue<Customer> queue){
         Order o = null;
         switch ((int)(Math.random()*3)){

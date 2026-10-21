@@ -30,6 +30,14 @@ public class GameState {
         return activeOrders;
     }
 
+    public void killOrder(Order o){
+        activeOrders.remove(o);
+    }
+
+    public void killCustomer(Customer c){
+        customerQueue.remove(c);
+    }
+
     public List<Table> getTables() {
         return tables;
     }

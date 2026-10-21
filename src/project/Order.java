@@ -5,6 +5,7 @@ public class Order {
     private MenuItem contents;
     private int cookTimeRequired;
     private int toBeEarned;
+    private int tableNo;
 
     public Order(MenuItem contents){
         status = OrderStatus.UNPLACED;
@@ -13,8 +14,9 @@ public class Order {
         toBeEarned = contents.priceCents();
     }
 
-    public void place(){
+    public void place(int tableNo){
         status = OrderStatus.PREPARING;
+        this.tableNo = tableNo;
     }
 
     public OrderStatus getStatus() {
@@ -38,6 +40,10 @@ public class Order {
         if (--cookTimeRequired <= 0){
             status = OrderStatus.READY;
         }
+    }
+
+    public int getTableNo() {
+        return tableNo;
     }
 
     public void serve(){
