@@ -49,4 +49,28 @@ public class GameState {
     public int getRevenue() {
         return revenue;
     }
+
+    public int getPaidCount(){
+        int count = 0;
+        for (Customer c : customerRecord){
+            if (c.getStatus() == CustomerStatus.PAID) 
+                count++;
+        }
+        return count;
+    }
+
+    // Average satisfaction of paid customers, or -1 if nobody has paid yet.
+    // Paid customers stopped losing satisfaction once served, so this is the value they paid with.
+    public double getAverageSatisfaction(){
+        int total = 0;
+        int count = 0;
+        for (Customer c : customerRecord){
+            if (c.getStatus() == CustomerStatus.PAID){
+                total += c.getSatisfaction();
+                count++;
+            }
+        }
+        if (count == 0) return -1;
+        return (double) total / count;
+    }
 }

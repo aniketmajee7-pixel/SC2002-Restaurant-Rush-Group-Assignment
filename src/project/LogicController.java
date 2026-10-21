@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.Queue;
 
 public class LogicController {
+    private static final int TARGET_PAID = 4;
+    private static final int TARGET_REVENUE = 4500; // cents
+    private static final int TARGET_SATISFACTION = 60;
+
     private int currentTurn;
     private Chef chef;
     private Waiter waiter;
@@ -60,7 +64,15 @@ public class LogicController {
         }
     }
     public void endGame(){
-        //work on this
+        int paid = state.getPaidCount();
+        int revenue = state.getRevenue();
+        double avgSatisfaction = state.getAverageSatisfaction();
+
+        boolean victory = paid >= TARGET_PAID
+                && revenue >= TARGET_REVENUE
+                && avgSatisfaction >= TARGET_SATISFACTION;
+
+        ui.showResult(paid, revenue, avgSatisfaction, victory);
     }
 
     public void execute(){

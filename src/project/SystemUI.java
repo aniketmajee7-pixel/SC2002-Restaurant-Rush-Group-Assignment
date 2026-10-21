@@ -17,6 +17,21 @@ public class SystemUI {
         System.out.println("There is a new customer waiting in the queue!");
     }
 
+    // Money is stored in cents; this turns 2430 into "$24.30".
+    public static String money(int cents){
+        return String.format("$%d.%02d", cents / 100, cents % 100);
+    }
+
+    public void showResult(int paid, int revenue, double avgSatisfaction, boolean victory){
+        String avg = avgSatisfaction < 0 ? "N/A" : String.format("%.1f", avgSatisfaction);
+        System.out.println();
+        System.out.println("========== GAME OVER ==========");
+        System.out.println("Paid customers:   " + paid + " (target 4)");
+        System.out.println("Revenue:          " + money(revenue) + " (target $45.00)");
+        System.out.println("Avg satisfaction: " + avg + " (target 60)");
+        System.out.println(victory ? "VICTORY!" : "DEFEAT.");
+    }
+
     public int query(Staff staff, String[] choices) {
         System.out.println("Manage " + staff.getName() + "! Your choices are:");
         for (int i = 1; i <= choices.length; i++) {

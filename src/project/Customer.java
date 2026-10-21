@@ -27,6 +27,10 @@ public class Customer {
         return status != CustomerStatus.KILLED && satisfaction <= 0;
     }
 
+    public int getSatisfaction() {
+        return satisfaction;
+    }
+
     public CustomerStatus getStatus() {
         return status;
     }
