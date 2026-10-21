@@ -4,15 +4,18 @@ import java.util.List;
 import java.util.Queue;
 
 public class Waiter implements Staff{
-    public void seat(Queue<Customer> queue, List<Table> tables){
-        Customer c = queue.poll();
+    // Returns false if nobody is queued or no table is free, so nobody is removed from the queue.
+    public boolean seat(Queue<Customer> queue, List<Table> tables){
+        if (queue.isEmpty()) return false;
         for (Table t : tables){
             if (!t.isOccupied()){
+                Customer c = queue.poll();
                 t.seat(c);
                 c.setStatus(CustomerStatus.READY_TO_ORDER);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public void order(Table t, List<Order> active){
@@ -22,7 +25,9 @@ public class Waiter implements Staff{
         active.add(o);
     }
 
-    public void serve(Order o, List<Table> tables, List<Order> active){
+    // Returns false if the order is not READY, leaving the order and customer unchanged.
+    public boolean serve(Order o, List<Table> tables, List<Order> active){
+        if (o.getStatus() != OrderStatus.READY) return false;
         o.serve();
         int tableNo = o.getTableNo();
         for (Table t : tables){
@@ -32,6 +37,7 @@ public class Waiter implements Staff{
             }
         }
         active.remove(o);
+        return true;
     }
     @Override
     public String getName() {

@@ -25,7 +25,7 @@ public class LogicController {
     }
 
     public boolean wantsToLive(){
-        return (currentTurn<19);
+        return (currentTurn<18);
     }
 
     public void updateTurn(){
