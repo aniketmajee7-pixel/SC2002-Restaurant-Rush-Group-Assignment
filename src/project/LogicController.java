@@ -15,10 +15,10 @@ public class LogicController {
         chef = new Chef();
         waiter = new Waiter();
         cashier = new Cashier();
-        cm = new CustomerManager();
+        state = new GameState();
+        cm = new CustomerManager(state.getCustomerRecord());
         ui = new SystemUI();
         ui.welcome();
-        state = new GameState();
     }
 
     public boolean wantsToLive(){

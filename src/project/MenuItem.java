@@ -3,7 +3,7 @@ package project;
 public enum MenuItem {
           SALAD("Salad",900,1),
           BURGER("Burger",1500,1),
-          PASTA("Paster",1800,2);
+          PASTA("Pasta",1800,2);
 
           private final String name;
           private final int priceCents;

@@ -1,5 +1,10 @@
 package project;
 
 public enum OrderStatus {
-          PREPARING, READY,SERVED,PAID,CANCELLED
+    UNPLACED,
+    PREPARING,
+    READY,
+    SERVED,
+    PAID,
+    KILLED
 } 
