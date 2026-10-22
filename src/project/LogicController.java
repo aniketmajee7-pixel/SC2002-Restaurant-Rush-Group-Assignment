@@ -68,7 +68,9 @@ public class LogicController {
                         ui.displayError(ActionError.NO_READY_CUSTOMER);
                         break;
                     }
-                    ui.showOrder(waiter.order(temp.get(ui.takeOrder(temp) - 1), state.getActiveOrders()));
+                    Order newOrder = waiter.order(temp.get(ui.takeOrder(temp) - 1));
+                    ui.showOrder(newOrder);
+                    state.addOrder(newOrder);
                     worked = true;
                     break;
                 case 3:

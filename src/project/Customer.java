@@ -7,16 +7,12 @@ public class Customer {
     private CustomerStatus status;
     private int satisfaction;
     private final int IRRITATION = 8;
-    private static final String[] CUSTOMERNAMES = new String[]{"Michael",
-            "George", "Lucille", "Buster", "Oscar", "Lindsay", "Tobias", "Mae", "Tracy"};
-    private static int count = 0;
 
-    public Customer(Order desire) {
+    public Customer(Order desire, String n) {
         this.desire = desire;
         status = CustomerStatus.QUEUED;
         satisfaction = 100;
-        name = CUSTOMERNAMES[count%9];
-        count++;
+        name = n;
     }
 
     public void irritate(){

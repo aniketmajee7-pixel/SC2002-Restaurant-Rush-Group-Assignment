@@ -75,7 +75,9 @@ public class GameState {
         }
         return ready;
     }
-
+    public void addOrder(Order o){
+        activeOrders.add(o);
+    }
     public List<Order> getCookableOrders() {
         List<Order> ready = new ArrayList<>();
         for (Order o : getActiveOrders()){

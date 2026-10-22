@@ -10,6 +10,8 @@ public class CustomerManager {
     private static final long SEED = 2002; // fixed seed so every run gets the same food choices
     private final Random random = new Random(SEED);
     private List<Customer> record;
+    private static final String[] CUSTOMERNAMES = new String[]{"Michael",
+            "George", "Lucille", "Buster", "Oscar", "Lindsay", "Tobias", "Mae", "Tracy"};
 
     public CustomerManager(List<Customer> rec){
         record = rec;
@@ -33,7 +35,8 @@ public class CustomerManager {
     private Customer spawnCustomer(Queue<Customer> queue){
         MenuItem[] menu = MenuItem.values();
         Order o = new Order(menu[random.nextInt(menu.length)]);
-        Customer c = new Customer(o);
+        String name = CUSTOMERNAMES[random.nextInt(9)];
+        Customer c = new Customer(o, name);
         record.add(c);
         queue.add(c);
         return c;
