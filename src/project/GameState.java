@@ -30,14 +30,6 @@ public class GameState {
         return activeOrders;
     }
 
-    public void killOrder(Order o){
-        activeOrders.remove(o);
-    }
-
-    public void killCustomer(Customer c){
-        customerQueue.remove(c);
-    }
-
     public List<Table> getTables() {
         return tables;
     }
@@ -57,6 +49,11 @@ public class GameState {
                 count++;
         }
         return count;
+    }
+
+    public void getDepartures(){
+        int count = 0;
+
     }
 
     // Average satisfaction of paid customers, or -1 if nobody has paid yet.

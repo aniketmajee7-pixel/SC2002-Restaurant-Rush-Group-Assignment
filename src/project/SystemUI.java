@@ -1,5 +1,7 @@
 package project;
 
+import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
 
 public class SystemUI {
@@ -18,32 +20,91 @@ public class SystemUI {
     }
 
     // Money is stored in cents; this turns 2430 into "$24.30".
-    public static String money(int cents){
+    public static String convert(int cents){
         return String.format("$%d.%02d", cents / 100, cents % 100);
     }
 
+    public void displayError(ActionError e){
+        System.out.println(e);
+    }
+
     public void showResult(int paid, int revenue, double avgSatisfaction, boolean victory){
-        String avg = avgSatisfaction < 0 ? "N/A" : String.format("%.1f", avgSatisfaction);
+        String avg = (avgSatisfaction>=0)?String.format("%.1f", avgSatisfaction):"N/A";
         System.out.println();
         System.out.println("========== GAME OVER ==========");
         System.out.println("Paid customers:   " + paid + " (target 4)");
-        System.out.println("Revenue:          " + money(revenue) + " (target $45.00)");
+        System.out.println("Revenue:          " + convert(revenue) + " (target $45.00)");
         System.out.println("Avg satisfaction: " + avg + " (target 60)");
-        System.out.println(victory ? "VICTORY!" : "DEFEAT.");
+        System.out.println(victory ? "YOU WIN!" : "YOU LOSE!");
     }
 
-    public int query(Staff staff, String[] choices) {
-        System.out.println("Manage " + staff.getName() + "! Your choices are:");
-        for (int i = 1; i <= choices.length; i++) {
-            System.out.println(i + ": " + choices[i-1]);
+    public void startOfTurn(int turnNumber, int revenue, double avgSatisfaction,
+                            Queue<Customer> customerQueue, List<Table> tables, List<Order> orders){
+        String avg = (avgSatisfaction>=0)?String.format("%.1f", avgSatisfaction):"N/A";
+        System.out.print("\nTurn Number: "+turnNumber +
+                        "\tRevenue: " + convert(revenue) + "\tAverage Satisfaction (Paid Customers): "+avg);
+        System.out.println("\nCustomer Queue: [");
+        for (Customer c : customerQueue){
+            System.out.print("| "+c.getName()+"(Satisfaction: "+c.getSatisfaction()+") |");
         }
-        return takeChoice(1, choices.length);
+        System.out.println("]\nTotal Waiting: "+customerQueue.size()+" people");
+        System.out.println("Tables:");
+        for (Table t : tables){
+            if (t.isOccupied()){
+                Customer c = t.getCustomer();
+                System.out.println("Table "+t.getTableNo()+": Occupied by "+c.getName()+" (Satisfaction: "+c.getSatisfaction()+", Status: "+c.getStatus()+")");
+            } else {
+                System.out.println("Table "+t.getTableNo()+": Empty");
+            }
+        }
+
+        System.out.println("\nActive Orders:");
+        if (orders.isEmpty()){
+            System.out.println("None");
+        } else {
+            for (Order o : orders){
+                System.out.println("Order of " + o.getContents() + " for Table "+o.getTableNo()+": Status - "+o.getStatus()+", Prep Units Remaining - "+o.getCookTimeRequired());
+            }
+        }
+        System.out.println();
+    }
+
+    public void endOfTurn(){
+
+    }
+
+    public int takeOrder(List<Table> tables){
+        System.out.println("Select a table to take order!");
+        int i = 1;
+        for (Table t : tables){
+            System.out.println(i + ": table " + t.getTableNo() + ", seating "+t.getCustomer() + " (Satisfaction: " + t.getCustomer().getSatisfaction() + ")");
+            i++;
+        }
+        return takeChoice(1, --i);
+    }
+
+    public int serveOrder(List<Order> orders){
+        System.out.println("Which order should be served?");
+        int i = 1;
+        for (Order o : orders){
+            System.out.println(i + ": " + o.getContents() + " for table "+o.getTableNo());
+            i++;
+        }
+        return takeChoice(1, --i);
+    }
+
+    public int query(Staff staff) {
+        System.out.println("Manage " + staff.getName() + "! Your choices are:");
+        for (int i = 1; i <= staff.getChoices().length; i++) {
+            System.out.println(i + ": " + staff.getChoices()[i-1]);
+        }
+        return takeChoice(1, staff.getChoices().length);
     }
 
     public int takeChoice(int min, int max){
         int choice;
         while (true) {
-            try { //game keeps crashing if I enter 'a', I think this will fix that
+            try {
                 choice = Integer.parseInt(sc.nextLine().trim());
                 if (choice < min || choice > max) {
                     System.out.println("Invalid choice! Try again");

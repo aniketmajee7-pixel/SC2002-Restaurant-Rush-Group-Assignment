@@ -3,7 +3,7 @@ package project;
 public class Table {
     private boolean isOccupied;
     private Customer customer;
-    public int tableNo;
+    private final int tableNo;
 
     public Table(int tableNo) {
         this.isOccupied = false;
@@ -14,6 +14,10 @@ public class Table {
     public Customer getCustomer() {
         if(isOccupied) return customer;
         return null;
+    }
+
+    public int getTableNo() {
+        return tableNo;
     }
 
     public boolean isOccupied() {

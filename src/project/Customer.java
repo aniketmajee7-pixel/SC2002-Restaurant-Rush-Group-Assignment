@@ -1,17 +1,22 @@
 package project;
 
-import java.util.Queue;
 
 public class Customer {
+    private final String name;
     private Order desire;
     private CustomerStatus status;
     private int satisfaction;
     private final int IRRITATION = 8;
+    private static final String[] CUSTOMERNAMES = new String[]{"Michael",
+            "George", "Lucille", "Buster", "Oscar", "Lindsay", "Tobias", "Mae", "Tracy"};
+    private static int count = 0;
 
     public Customer(Order desire) {
         this.desire = desire;
         status = CustomerStatus.QUEUED;
         satisfaction = 100;
+        name = CUSTOMERNAMES[count%9];
+        count++;
     }
 
     public void irritate(){
@@ -19,7 +24,11 @@ public class Customer {
         if (satisfaction < 0) satisfaction = 0;
     }
 
-    public Order takeOrder(){
+    public String getName() {
+        return name;
+    }
+
+    public Order getOrder(){
         return desire;
     }
 
@@ -44,5 +53,10 @@ public class Customer {
     public void kill(){
         status = CustomerStatus.KILLED;
         desire.kill();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

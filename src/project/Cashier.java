@@ -25,4 +25,9 @@ public class Cashier implements Staff{
     public String getName() {
         return "Cashier";
     }
+
+    @Override
+    public String[] getChoices() {
+        return new String[0];
+    }
 }

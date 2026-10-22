@@ -1,5 +1,6 @@
 package project;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -37,6 +38,71 @@ public class LogicController {
         execute();
     }
 
+    public void execute() {
+        boolean arrived = cm.processArrival(currentTurn, state.getCustomerQueue());
+        if (arrived) ui.announce();
+        ui.startOfTurn(currentTurn, state.getRevenue(), state.getAverageSatisfaction(),
+                state.getCustomerQueue(), state.getTables(), state.getActiveOrders());
+        manageWaiter();
+        manageChef();
+        manageCashier();
+        cm.update();
+        reap();
+    }
+
+    public void manageWaiter() {
+        boolean worked = false;
+        while (!worked){
+            switch(ui.query(waiter)){
+                case 1:
+                    ActionError test = waiter.seat(state.getCustomerQueue(), state.getTables());
+                    if (test != null){
+                        ui.displayError(test);
+                        break;
+                    }
+                    worked = true;
+                    break;
+                case 2:
+                    List<Table> temp = new ArrayList<>();
+                    for (Table t : state.getTables()){
+                        if(t.isOccupied() && t.getCustomer().getStatus() == CustomerStatus.READY_TO_ORDER) {
+                            temp.add(t);
+                        }
+                    }
+                    if (temp.isEmpty()){
+                        ui.displayError(ActionError.NO_READY_CUSTOMER);
+                        break;
+                    }
+                    waiter.order(temp.get(ui.takeOrder(temp) - 1), state.getActiveOrders());
+                    worked = true;
+                    break;
+                case 3:
+                    List<Order> ready = new ArrayList<>();
+                    for (Order o : state.getActiveOrders()){
+                        if (o.getStatus() == OrderStatus.READY)
+                            ready.add(o);
+                    }
+                    if (ready.isEmpty()){
+                        ui.displayError(ActionError.NO_READY_ORDER);
+                        break;
+                    }
+                    waiter.serve(ready.get(ui.serveOrder(ready) - 1), state.getTables(), state.getActiveOrders());
+                    worked = true;
+                    break;
+                default:
+                    worked = true;
+            }
+        }
+    }
+
+    public void manageChef(){
+
+    }
+
+    public void manageCashier(){
+
+    }
+
     public void reap(){
         for (Table t : state.getTables()){
             if (t.isOccupied() && t.getCustomer().isEnraged()){
@@ -44,6 +110,7 @@ public class LogicController {
                 t.free();
             }
         }
+        //I couldn't think of a different way to implement this, probably suboptimal
         Queue<Customer> queue = state.getCustomerQueue();
         Customer[] queueArray = queue.toArray(new Customer[0]);
         queue.clear();
@@ -74,9 +141,5 @@ public class LogicController {
 
         ui.showResult(paid, revenue, avgSatisfaction, victory);
     }
-
-    public void execute(){
-        boolean arrived = cm.processArrival(currentTurn, state.getCustomerQueue());
-        if (arrived) ui.announce();
-    }
 }
+

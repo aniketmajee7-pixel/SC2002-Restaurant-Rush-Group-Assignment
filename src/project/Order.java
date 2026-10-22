@@ -27,6 +27,15 @@ public class Order {
         return contents.getName();
     }
 
+    public int getCookTimeRequired(){
+        return cookTimeRequired;
+    }
+
+    @Override
+    public String toString() {
+        return getContents();
+    }
+
     public int finish(){
         status = OrderStatus.PAID;
         return toBeEarned;
