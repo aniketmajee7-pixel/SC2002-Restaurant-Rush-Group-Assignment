@@ -51,7 +51,7 @@ public class SystemUI {
         String avg = (avgSatisfaction >= 0) ? String.format("%.1f", avgSatisfaction) : "N/A";
         System.out.print("\nStart of turn " + turnNumber +
                 "!\tRevenue: " + convert(revenue) + "\tAverage Satisfaction (Paid Customers): " + avg);
-        System.out.println("\nCustomer Queue: [");
+        System.out.print("\nCustomer Queue: [");
         for (Customer c : customerQueue) {
             System.out.print("| " + c.getName() + "(Satisfaction: " + c.getSatisfaction() + ") |");
         }
