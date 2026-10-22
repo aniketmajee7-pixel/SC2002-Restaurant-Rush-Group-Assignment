@@ -17,7 +17,6 @@ public class CustomerManager {
 
     public void update(){
         for (Customer c : record){
-            // else-if so a customer moves only one step per turn: served -> eating -> ready to pay
             if (c.getStatus() == CustomerStatus.EATING){
                 c.setStatus(CustomerStatus.READY_TO_PAY);
             } else if (c.getStatus() == CustomerStatus.SERVED){

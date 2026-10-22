@@ -47,7 +47,7 @@ public class LogicController {
         manageChef();
         manageCashier();
         cm.update();
-        reap();
+        ui.endOfTurn(currentTurn, state.getPaidCount(), reap(), state.getRevenue(), state.getAverageSatisfaction());
     }
 
     public void manageWaiter() {
@@ -96,17 +96,41 @@ public class LogicController {
     }
 
     public void manageChef(){
-
+        boolean worked = false;
+        while (!worked) {
+            switch (ui.query(chef)) {
+                case 1:
+                    List<Order> cookable = new ArrayList<>();
+                    for (Order o : state.getActiveOrders()) {
+                        if (o.getStatus() == OrderStatus.PREPARING) {
+                            cookable.add(o);
+                        }
+                    }
+                    if (cookable.isEmpty()) {
+                        ui.displayError(ActionError.NOTHING_TO_COOK);
+                        break;
+                    }
+                    chef.cook(cookable.get(ui.cook(cookable) - 1));
+                default:
+                    worked = true;
+            }
+        }
     }
 
     public void manageCashier(){
-
+        BillResult bill = cashier.bill(state.getTables(), state.getCustomerRecord());
+        if (bill != null){
+            state.makeMoney(bill.revenue());
+            ui.bill(bill.customer());
+        }
     }
 
-    public void reap(){
+    public List<Customer> reap(){
+        List<Customer> newlyDead = new ArrayList<>();
         for (Table t : state.getTables()){
             if (t.isOccupied() && t.getCustomer().isEnraged()){
                 t.getCustomer().kill();
+                newlyDead.add(t.getCustomer());
                 t.free();
             }
         }
@@ -118,6 +142,7 @@ public class LogicController {
             Customer c = queueArray[i];
             if (c.isEnraged()) {
                 c.kill();
+                newlyDead.add(c);
             } else {
                 queue.add(c);
             }
@@ -129,6 +154,7 @@ public class LogicController {
                 orders.remove(i);
             }
         }
+        return newlyDead;
     }
     public void endGame(){
         int paid = state.getPaidCount();

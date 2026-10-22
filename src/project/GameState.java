@@ -51,11 +51,6 @@ public class GameState {
         return count;
     }
 
-    public void getDepartures(){
-        int count = 0;
-
-    }
-
     // Average satisfaction of paid customers, or -1 if nobody has paid yet.
     // Paid customers stopped losing satisfaction once served, so this is the value they paid with.
     public double getAverageSatisfaction(){
