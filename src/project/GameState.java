@@ -51,6 +51,39 @@ public class GameState {
         return count;
     }
 
+    public int getServedCount(){
+        int count = 0;
+        for (Customer c : customerRecord){
+            if (c.getStatus() == CustomerStatus.SERVED)
+                count++;
+        }
+        return count;
+    }
+    public List<Table> getReadyTables() {
+        List<Table> temp = new ArrayList<>();
+        for (Table t : tables) {
+            if (t.isOccupied() && t.getCustomer().getStatus() == CustomerStatus.READY_TO_ORDER)
+                temp.add(t);
+        }
+        return temp;
+    }
+    public List<Order> getReadyOrders() {
+        List<Order> ready = new ArrayList<>();
+        for (Order o : getActiveOrders()){
+            if (o.getStatus() == OrderStatus.READY)
+                ready.add(o);
+        }
+        return ready;
+    }
+
+    public List<Order> getCookableOrders() {
+        List<Order> ready = new ArrayList<>();
+        for (Order o : getActiveOrders()){
+            if (o.getStatus() == OrderStatus.PREPARING)
+                ready.add(o);
+        }
+        return ready;
+    }
     // Average satisfaction of paid customers, or -1 if nobody has paid yet.
     // Paid customers stopped losing satisfaction once served, so this is the value they paid with.
     public double getAverageSatisfaction(){

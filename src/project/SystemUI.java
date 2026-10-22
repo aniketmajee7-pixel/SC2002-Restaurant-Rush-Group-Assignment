@@ -75,6 +75,8 @@ public class SystemUI {
             }
         }
         System.out.println();
+
+        System.out.println("Available staff actions: Waiter [1], Chef [1], Cashier [1]");
     }
 
     public void endOfTurn(int turn, int served, List<Customer> dead, int revenue, double avgSatisfaction) {
@@ -99,6 +101,10 @@ public class SystemUI {
             i++;
         }
         return takeChoice(1, --i);
+    }
+
+    public void showOrder(Order o) {
+        System.out.println("The customer at table "+o.getTableNo()+" has placed an order of "+o+"!");
     }
 
     public int serveOrder(List<Order> orders) {

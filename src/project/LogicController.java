@@ -47,7 +47,7 @@ public class LogicController {
         manageChef();
         manageCashier();
         cm.update();
-        ui.endOfTurn(currentTurn, state.getPaidCount(), reap(), state.getRevenue(), state.getAverageSatisfaction());
+        ui.endOfTurn(currentTurn, state.getServedCount(), reap(), state.getRevenue(), state.getAverageSatisfaction());
     }
 
     public void manageWaiter() {
@@ -63,25 +63,16 @@ public class LogicController {
                     worked = true;
                     break;
                 case 2:
-                    List<Table> temp = new ArrayList<>();
-                    for (Table t : state.getTables()){
-                        if(t.isOccupied() && t.getCustomer().getStatus() == CustomerStatus.READY_TO_ORDER) {
-                            temp.add(t);
-                        }
-                    }
+                    List<Table> temp = state.getReadyTables();
                     if (temp.isEmpty()){
                         ui.displayError(ActionError.NO_READY_CUSTOMER);
                         break;
                     }
-                    waiter.order(temp.get(ui.takeOrder(temp) - 1), state.getActiveOrders());
+                    ui.showOrder(waiter.order(temp.get(ui.takeOrder(temp) - 1), state.getActiveOrders()));
                     worked = true;
                     break;
                 case 3:
-                    List<Order> ready = new ArrayList<>();
-                    for (Order o : state.getActiveOrders()){
-                        if (o.getStatus() == OrderStatus.READY)
-                            ready.add(o);
-                    }
+                    List<Order> ready = state.getReadyOrders();
                     if (ready.isEmpty()){
                         ui.displayError(ActionError.NO_READY_ORDER);
                         break;
@@ -100,12 +91,7 @@ public class LogicController {
         while (!worked) {
             switch (ui.query(chef)) {
                 case 1:
-                    List<Order> cookable = new ArrayList<>();
-                    for (Order o : state.getActiveOrders()) {
-                        if (o.getStatus() == OrderStatus.PREPARING) {
-                            cookable.add(o);
-                        }
-                    }
+                    List<Order> cookable = state.getCookableOrders();
                     if (cookable.isEmpty()) {
                         ui.displayError(ActionError.NOTHING_TO_COOK);
                         break;

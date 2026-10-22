@@ -35,6 +35,8 @@ public class Table {
 
     public Customer free(){
         isOccupied = false;
-        return customer;
+        Customer temp = customer;
+        customer = null;
+        return temp;
     }
 }

@@ -21,11 +21,12 @@ public class Waiter implements Staff{
         }
         return ActionError.NO_VACANT_TABLE;
     }
-    public void order(Table t, List<Order> active){
+    public Order order(Table t, List<Order> active){
         t.getCustomer().setStatus(CustomerStatus.ORDERED);
         Order o = t.getCustomer().getOrder();
         o.place(t.getTableNo());
         active.add(o);
+        return o;
     }
     public void serve(Order o, List<Table> tables, List<Order> active){
         o.serve();
