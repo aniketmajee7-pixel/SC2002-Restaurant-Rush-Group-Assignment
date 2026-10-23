@@ -5,7 +5,7 @@ import java.util.Queue;
 import java.util.Scanner;
 
 public class SystemUI {
-    Scanner sc;
+    private final Scanner sc;
 
     public SystemUI() {
         sc = new Scanner(System.in);
@@ -29,9 +29,13 @@ public class SystemUI {
     }
 
     public void clear(){
-        //Found on stack overflow, does the same thing as 'clear' in bash
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        for (int i = 0; i < 50; i++)
+            System.out.println();
+    }
+
+    public void prompt(){
+        System.out.println("Press enter to continue!");
+        sc.nextLine();
     }
 
     public void showResult(int paid, int revenue, double avgSatisfaction, boolean victory) {
@@ -43,6 +47,7 @@ public class SystemUI {
         System.out.println("Revenue:          " + convert(revenue) + " (target $45.00)");
         System.out.println("Avg satisfaction: " + avg + " (target 60)");
         System.out.println(victory ? "YOU WIN!" : "YOU LOSE!");
+        sc.close();
     }
 
     public void startOfTurn(int turnNumber, int revenue, double avgSatisfaction,
@@ -61,6 +66,7 @@ public class SystemUI {
             if (t.isOccupied()) {
                 Customer c = t.getCustomer();
                 System.out.println("Table " + t.getTableNo() + ": Occupied by " + c.getName() + " (Satisfaction: " + c.getSatisfaction() + ", Status: " + c.getStatus() + ")");
+                System.out.println("Order Status: "+t.getCustomer().getOrder().getStatus());
             } else {
                 System.out.println("Table " + t.getTableNo() + ": Empty");
             }
@@ -77,20 +83,20 @@ public class SystemUI {
         System.out.println();
 
         System.out.println("Available staff actions: Waiter [1], Chef [1], Cashier [1]");
+        prompt();
     }
 
     public void endOfTurn(int turn, int served, List<Customer> dead, int revenue, double avgSatisfaction) {
         clear();
         String avg = (avgSatisfaction >= 0) ? String.format("%.1f", avgSatisfaction) : "N/A";
-        System.out.println("End of turn " + turn);
+        System.out.println("Turns used: " + turn);
         System.out.println("=====================RESULTS=====================");
         System.out.println("Customers served (lifetime): " + served +
                 "\tRevenue: " + convert(revenue) + "\tAverage Satisfaction: " + avg + "\n");
         for (Customer c : dead) {
             System.out.println(c + " got so angry they left (without paying)!");
         }
-        System.out.println("Press enter to continue!");
-        sc.nextLine();
+        prompt();
     }
 
     public int takeOrder(List<Table> tables) {
@@ -140,6 +146,7 @@ public class SystemUI {
     }
 
     public int takeChoice(int min, int max) {
+        if (max < min) return -1;
         int choice;
         while (true) {
             try {

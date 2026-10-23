@@ -33,7 +33,7 @@ public class Order {
 
     @Override
     public String toString() {
-        return getContents();
+        return getContents() + " (status: "+getStatus()+")";
     }
 
     public int finish(){

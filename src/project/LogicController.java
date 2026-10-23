@@ -46,6 +46,7 @@ public class LogicController {
         }
         ui.startOfTurn(currentTurn, state.getRevenue(), state.getAverageSatisfaction(),
                 state.getCustomerQueue(), state.getTables(), state.getActiveOrders());
+        //This does NOT violate OOP as it only passes immutable versions or copied objects
         manageWaiter();
         manageChef();
         manageCashier();
