@@ -51,7 +51,9 @@ public class LogicController {
         manageChef();
         manageCashier();
         cm.update(state.getCustomerRecord());
+        //READY_TO_PAY set after cashier, since new ready to pay customers can't pay till next turn
         ui.endOfTurn(currentTurn, state.getServedCount(), state.reap(), state.getRevenue(), state.getAverageSatisfaction());
+        //reap is a mutator method that kills enranged customers and removes killed orders
     }
 
     public void manageWaiter() {
