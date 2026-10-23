@@ -24,7 +24,7 @@ public class LogicController {
         waiter = new Waiter();
         cashier = new Cashier();
         state = new GameState();
-        cm = new CustomerManager(state.getCustomerRecord());
+        cm = new CustomerManager();
         ui = new SystemUI();
         ui.welcome();
     }
@@ -39,15 +39,18 @@ public class LogicController {
     }
 
     public void execute() {
-        boolean arrived = cm.processArrival(currentTurn, state.getCustomerQueue());
-        if (arrived) ui.announce();
+        Customer arrived = cm.processArrival(currentTurn);
+        if (arrived!=null){
+            ui.announce();
+            state.addCustomer(arrived);
+        }
         ui.startOfTurn(currentTurn, state.getRevenue(), state.getAverageSatisfaction(),
                 state.getCustomerQueue(), state.getTables(), state.getActiveOrders());
         manageWaiter();
         manageChef();
         manageCashier();
-        cm.update();
-        ui.endOfTurn(currentTurn, state.getServedCount(), reap(), state.getRevenue(), state.getAverageSatisfaction());
+        cm.update(state.getCustomerRecord());
+        ui.endOfTurn(currentTurn, state.getServedCount(), state.reap(), state.getRevenue(), state.getAverageSatisfaction());
     }
 
     public void manageWaiter() {
@@ -55,11 +58,17 @@ public class LogicController {
         while (!worked){
             switch(ui.query(waiter)){
                 case 1:
-                    ActionError test = waiter.seat(state.getCustomerQueue(), state.getTables());
-                    if (test != null){
-                        ui.displayError(test);
+                    Table table = state.getEmptyTable();
+                    if (table == null){
+                        ui.displayError(ActionError.NO_VACANT_TABLE);
                         break;
                     }
+                    Customer customer = state.deQueue();
+                    if (customer == null){
+                        ui.displayError(ActionError.EMPTY_QUEUE);
+                        break;
+                    }
+                    waiter.seat(customer,table);
                     worked = true;
                     break;
                 case 2:
@@ -79,7 +88,9 @@ public class LogicController {
                         ui.displayError(ActionError.NO_READY_ORDER);
                         break;
                     }
-                    waiter.serve(ready.get(ui.serveOrder(ready) - 1), state.getTables(), state.getActiveOrders());
+                    Order prepared = ready.get(ui.serveOrder(ready) - 1);
+                    waiter.serve(prepared, state.getTableNO(prepared.getTableNo()));
+                    state.markServed(prepared);
                     worked = true;
                     break;
                 default:
@@ -99,6 +110,7 @@ public class LogicController {
                         break;
                     }
                     chef.cook(cookable.get(ui.cook(cookable) - 1));
+                    //NO BREAK NEEDED, THIS IS THE LITERAL USE CASE OF FALLTHROUGH
                 default:
                     worked = true;
             }
@@ -106,44 +118,14 @@ public class LogicController {
     }
 
     public void manageCashier(){
-        BillResult bill = cashier.bill(state.getTables(), state.getCustomerRecord());
-        if (bill != null){
-            state.makeMoney(bill.revenue());
-            ui.bill(bill.customer());
+        Table billable = state.getBillable();
+        if (billable != null){
+            ui.bill(billable.getCustomer());
+            state.makeMoney(cashier.bill(billable.getCustomer()));
+            state.freeTable(billable);
         }
     }
 
-    public List<Customer> reap(){
-        List<Customer> newlyDead = new ArrayList<>();
-        for (Table t : state.getTables()){
-            if (t.isOccupied() && t.getCustomer().isEnraged()){
-                t.getCustomer().kill();
-                newlyDead.add(t.getCustomer());
-                t.free();
-            }
-        }
-        //I couldn't think of a different way to implement this, probably suboptimal
-        Queue<Customer> queue = state.getCustomerQueue();
-        Customer[] queueArray = queue.toArray(new Customer[0]);
-        queue.clear();
-        for (int i = 0; i < queueArray.length; i++) {
-            Customer c = queueArray[i];
-            if (c.isEnraged()) {
-                c.kill();
-                newlyDead.add(c);
-            } else {
-                queue.add(c);
-            }
-        }
-        List<Order> orders = state.getActiveOrders();
-        for (int i = orders.size() - 1; i >= 0; i--) {
-            Order o = orders.get(i);
-            if (o.getStatus() == OrderStatus.KILLED) {
-                orders.remove(i);
-            }
-        }
-        return newlyDead;
-    }
     public void endGame(){
         int paid = state.getPaidCount();
         int revenue = state.getRevenue();

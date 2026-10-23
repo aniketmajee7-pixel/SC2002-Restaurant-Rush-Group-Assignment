@@ -131,7 +131,7 @@ public class SystemUI {
         System.out.println("The cashier has succcessfully billed " + customer + "!");
     }
 
-    public int query(Staff staff) {
+    public int query(ControllableStaff staff) {
         System.out.println("Manage " + staff.getName() + "! Your choices are:");
         for (int i = 1; i <= staff.getChoices().length; i++) {
             System.out.println(i + ": " + staff.getChoices()[i - 1]);

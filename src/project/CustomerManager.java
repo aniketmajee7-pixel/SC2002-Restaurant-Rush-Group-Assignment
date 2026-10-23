@@ -9,43 +9,28 @@ public class CustomerManager {
     private static final Set<Integer> ARRIVALS = Set.of(1,4,7,10,13,16);
     private static final long SEED = 2002; // fixed seed so every run gets the same food choices
     private final Random random = new Random(SEED);
-    private List<Customer> record;
     private static final String[] CUSTOMERNAMES = new String[]{"Michael",
             "George", "Lucille", "Buster", "Oscar", "Lindsay", "Tobias", "Mae", "Tracy"};
 
-    public CustomerManager(List<Customer> rec){
-        record = rec;
-    }
+    public CustomerManager(){}
 
-    public void update(){
-        for (Customer c : record){
-            if (c.getStatus() == CustomerStatus.EATING){
-                c.setStatus(CustomerStatus.READY_TO_PAY);
-            } else if (c.getStatus() == CustomerStatus.SERVED){
-                c.setStatus(CustomerStatus.EATING);
-            }
-            if (c.getStatus() == CustomerStatus.QUEUED ||
-                c.getStatus() == CustomerStatus.READY_TO_ORDER||
-                c.getStatus() == CustomerStatus.ORDERED){
-                c.irritate();
-            }
+    public void update(List<Customer> rec){
+        for (Customer c : rec){
+            c.advanceMeal();
+            c.tickPatience();
         }
     }
 
-    private Customer spawnCustomer(Queue<Customer> queue){
+    private Customer spawnCustomer(){
         MenuItem[] menu = MenuItem.values();
         Order o = new Order(menu[random.nextInt(menu.length)]);
-        String name = CUSTOMERNAMES[random.nextInt(9)];
-        Customer c = new Customer(o, name);
-        record.add(c);
-        queue.add(c);
-        return c;
+        String name = CUSTOMERNAMES[random.nextInt(CUSTOMERNAMES.length)];
+        return new Customer(o, name);
     }
-    public boolean processArrival(int turn, Queue<Customer> queue){
+    public Customer processArrival(int turn){
         if (ARRIVALS.contains(turn)){
-            spawnCustomer(queue);
-            return true;
+            return spawnCustomer();
         }
-        return false;
+        return null;
     }
 }

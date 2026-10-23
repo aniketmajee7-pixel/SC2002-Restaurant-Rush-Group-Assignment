@@ -44,11 +44,43 @@ public class Customer {
         this.status = status;
     }
 
-    public int finish(){ return desire.finish(); }
+    public int finish(){
+        setStatus(CustomerStatus.PAID);
+        return desire.finish();
+    }
+
+    public void makeOrderable(){
+        setStatus(CustomerStatus.READY_TO_ORDER);
+    }
+
+    public void takeOrder(){
+        setStatus(CustomerStatus.ORDERED);
+    }
+
+    public void serveOrder(){
+        setStatus(CustomerStatus.SERVED);
+    }
 
     public void kill(){
         status = CustomerStatus.KILLED;
         desire.kill();
+    }
+
+    // Inside Customer.java
+    public void advanceMeal() {
+        if (status == CustomerStatus.SERVED) {
+            status = CustomerStatus.EATING;
+        } else if (status == CustomerStatus.EATING) {
+            status = CustomerStatus.READY_TO_PAY;
+        }
+    }
+
+    public void tickPatience() {
+        if (status == CustomerStatus.QUEUED ||
+                status == CustomerStatus.READY_TO_ORDER ||
+                status == CustomerStatus.ORDERED) {
+            irritate();
+        }
     }
 
     @Override

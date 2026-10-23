@@ -1,6 +1,6 @@
 package project;
 
-public class Chef implements Staff{
+public class Chef implements ControllableStaff{
     private static final String[] CHOICES = new String[]{"Cook", "Wait"};
     public void cook(Order o){
         o.cook();

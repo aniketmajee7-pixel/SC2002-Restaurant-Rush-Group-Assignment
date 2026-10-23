@@ -3,40 +3,25 @@ package project;
 import java.util.List;
 import java.util.Queue;
 
-public class Waiter implements Staff{
+public class Waiter implements ControllableStaff{
     private static final String[] CHOICES = new String[]{"Seat Customer",
                     "Take Order",
                     "Serve Order",
                     "Wait"};
 
-    public ActionError seat(Queue<Customer> queue, List<Table> tables){
-        if (queue.isEmpty()) return ActionError.EMPTY_QUEUE;
-        for (Table t : tables){
-            if (!t.isOccupied()){
-                Customer c = queue.poll();
-                t.seat(c);
-                c.setStatus(CustomerStatus.READY_TO_ORDER);
-                return null;
-            }
-        }
-        return ActionError.NO_VACANT_TABLE;
+    public void seat(Customer customer, Table table){
+        table.seat(customer);
+        customer.makeOrderable();
     }
     public Order order(Table t){
-        t.getCustomer().setStatus(CustomerStatus.ORDERED);
+        t.getCustomer().takeOrder();
         Order o = t.getCustomer().getOrder();
         o.place(t.getTableNo());
         return o;
     }
-    public void serve(Order o, List<Table> tables, List<Order> active){
+    public void serve(Order o, Table t){
         o.serve();
-        int tableNo = o.getTableNo();
-        for (Table t : tables) {
-            if (t.getTableNo() == tableNo) {
-                t.getCustomer().setStatus(CustomerStatus.SERVED);
-                break;
-            }
-        }
-        active.remove(o);
+        t.getCustomer().serveOrder();
     }
     @Override
     public String getName() {
