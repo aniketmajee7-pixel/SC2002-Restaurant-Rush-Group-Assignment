@@ -58,7 +58,7 @@ public class SystemUI {
                 "!\tRevenue: " + convert(revenue) + "\tAverage Satisfaction (Paid Customers): " + avg);
         System.out.print("\nCustomer Queue: [");
         for (Customer c : customerQueue) {
-            System.out.print("| " + c.getName() + "(Satisfaction: " + c.getSatisfaction() + ") |");
+            System.out.print("| " + c.getName() + "  (Satisfaction: " + c.getSatisfaction() + ") |");
         }
         System.out.println("]\nTotal Waiting: " + customerQueue.size() + " people");
         System.out.println("Tables:");
