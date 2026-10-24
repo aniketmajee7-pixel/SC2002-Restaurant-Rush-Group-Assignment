@@ -1,7 +1,6 @@
 package project;
 
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
@@ -21,15 +20,24 @@ public class CustomerManager {
         }
     }
 
-    private Customer spawnCustomer(){
-        MenuItem[] menu = MenuItem.values();
-        Order o = new Order(menu[random.nextInt(menu.length)]);
+    private Customer spawnCustomer(int turn){
         String name = CUSTOMERNAMES[random.nextInt(CUSTOMERNAMES.length)];
-        return new Customer(o, name);
+        //hardcoded special customers on certain turns;
+        if (turn == 7){
+            return new CriticCustomer(name, random);
+        }
+        if (turn == 13){
+            return new VIPCustomer(name, random);
+        }
+        //dice roll for special customers on other turns;
+        int rand = random.nextInt(20); //roll a d20
+        if (rand == 0) return new CriticCustomer(name, random); //nat 1
+        if (rand == 19) return new VIPCustomer(name, random); //nat 20
+        return new Customer(name, random);
     }
     public Customer processArrival(int turn){
         if (ARRIVALS.contains(turn)){
-            return spawnCustomer();
+            return spawnCustomer(turn);
         }
         return null;
     }
