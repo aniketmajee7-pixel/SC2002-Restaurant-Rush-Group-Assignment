@@ -58,14 +58,14 @@ public class SystemUI {
                 "!\tRevenue: " + convert(revenue) + "\tAverage Satisfaction (Paid Customers): " + avg);
         System.out.print("\nCustomer Queue: [");
         for (Customer c : customerQueue) {
-            System.out.print("| " + c.getName() + "  (Satisfaction: " + c.getSatisfaction() + ") |");
+            System.out.print("| " + c + "  (Satisfaction: " + c.getSatisfaction() + ") |");
         }
         System.out.println("]\nTotal Waiting: " + customerQueue.size() + " people");
         System.out.println("Tables:");
         for (Table t : tables) {
             if (t.isOccupied()) {
                 Customer c = t.getCustomer();
-                System.out.println("Table " + t.getTableNo() + ": Occupied by " + c.getName() + " (Satisfaction: " + c.getSatisfaction() + ", Status: " + c.getStatus() + ")");
+                System.out.println("Table " + t.getTableNo() + ": Occupied by " + c + " (Satisfaction: " + c.getSatisfaction() + ", Status: " + c.getStatus() + ")");
                 System.out.println("Order Status: "+t.getCustomer().getOrder().getStatus());
             } else {
                 System.out.println("Table " + t.getTableNo() + ": Empty");

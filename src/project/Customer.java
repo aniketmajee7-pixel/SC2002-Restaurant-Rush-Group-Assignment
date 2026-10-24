@@ -1,22 +1,51 @@
 package project;
 
 
+import java.util.Random;
+
 public class Customer {
     private final String name;
     private Order desire;
     private CustomerStatus status;
     private int satisfaction;
-    private final int IRRITATION = 8;
+    private static final MenuItem[] menu = MenuItem.values();
 
-    public Customer(Order desire, String n) {
-        this.desire = desire;
+    //Random object is borrowed from Customer Manager so we don't have
+    //to keep changig the seed in both classes
+    public Customer(String n, Random random) {
         status = CustomerStatus.QUEUED;
         satisfaction = 100;
         name = n;
+        desire = makeDesire(random);
     }
 
+    //Methods to be overwritten by subclasses
+
+    protected int getIrritation(){
+        return 8;
+    }
+
+    protected double getDiscount(){
+        return 1;
+    }
+
+    public String getType(){
+        return "Regular";
+    }
+
+    protected Order makeDesire(Random random){
+        return new Order(menu[random.nextInt(menu.length)]);
+    }
+
+    public void serveOrder(){
+        setStatus(CustomerStatus.SERVED);
+    }
+
+
+    //Regular methods
+
     public void irritate(){
-        satisfaction -= IRRITATION;
+        satisfaction -= getIrritation();
         if (satisfaction < 0) satisfaction = 0;
     }
 
@@ -36,6 +65,10 @@ public class Customer {
         return satisfaction;
     }
 
+    protected void setSatisfaction(int satisfaction) {
+        this.satisfaction = satisfaction;
+    }
+
     public CustomerStatus getStatus() {
         return status;
     }
@@ -44,9 +77,9 @@ public class Customer {
         this.status = status;
     }
 
-    public int finish(){
+    public int bill(){
         setStatus(CustomerStatus.PAID);
-        return desire.finish();
+        return (int)(Math.rint(desire.finish()*getDiscount()));
     }
 
     public void makeOrderable(){
@@ -57,16 +90,13 @@ public class Customer {
         setStatus(CustomerStatus.ORDERED);
     }
 
-    public void serveOrder(){
-        setStatus(CustomerStatus.SERVED);
-    }
+
 
     public void kill(){
         status = CustomerStatus.KILLED;
         desire.kill();
     }
 
-    // Inside Customer.java
     public void advanceMeal() {
         if (status == CustomerStatus.SERVED) {
             status = CustomerStatus.EATING;
@@ -85,6 +115,6 @@ public class Customer {
 
     @Override
     public String toString() {
-        return name;
+        return "[" + getType() + "] " + name;
     }
 }

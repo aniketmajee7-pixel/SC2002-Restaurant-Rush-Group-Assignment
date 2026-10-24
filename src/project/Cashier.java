@@ -1,10 +1,8 @@
 package project;
 
-import java.util.List;
-
 public class Cashier implements Staff{
     public int bill(Customer c){
-        return c.finish();
+        return c.bill();
     }
     @Override
     public String getName() {
