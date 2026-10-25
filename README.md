@@ -21,6 +21,40 @@ java -cp bin project.GameLoop
 
 ---
 
+## Stage Transitions & Changes
+
+### Transition: Stage 1 → Stage 2
+**Git Diff**: `git diff stage-1 HEAD`
+
+#### SOLID & Design Improvements
+* **Moved Desire Initialization (Polymorphism & SRP)**: 
+  * In Stage 1, `CustomerManager` created meal orders and passed them into `Customer`.
+  * In Stage 2, I moved desire initialization into `Customer` via `makeDesire(random)`. This gives much better polymorphism: subclasses like `CriticCustomer` can now easily override `makeDesire()` to pick their own orders (e.g. always Pasta) without `CustomerManager` having to know or care about meal preferences.
+* **Single Responsibility Principle (SRP)**:
+  * `CustomerManager` only handles customer arrivals and queuing, not their orders.
+  * `Customer` handles its own irritation rate, meal selection, discounts, and reactions.
+  * `Cashier` only runs `c.bill()`, leaving discount math to the customer.
+* **Open/Closed Principle (OCP)** & **Liskov Substitution Principle (LSP)**:
+  * Added `VIPCustomer` and `CriticCustomer` by extending `Customer` and overriding hook methods (`getIrritation()`, `getDiscount()`, `makeDesire()`, `serveOrder()`).
+  * Controllers, queues, and tables treat all customers uniformly as `Customer` without needing any `instanceof` checks.
+* **Dependency Inversion Principle (DIP)**:
+  * High-level classes (`Cashier`, `CustomerManager`, `SystemUI`) depend on the base `Customer` abstraction, not concrete customer types.
+
+#### File Summary
+* **`VIPCustomer.java` (New)**: Extends `Customer`. Slower irritation decay (5), 10% bill discount (0.9), and `"VIP"` tag.
+* **`CriticCustomer.java` (New)**: Extends `Customer`. Faster irritation decay (12), always orders Pasta via overridden `makeDesire()`, and distinct reaction on service (`serveOrder()` adjusts satisfaction based on speed).
+* **`Customer.java`**:
+  * Moved order creation from `CustomerManager` into `makeDesire(Random)`.
+  * Added hook methods: `getIrritation()`, `getDiscount()`, `getType()`, `makeDesire()`.
+  * Renamed `finish()` to `bill()` to apply customer discounts.
+  * Overrode `toString()` to display `[" + getType() + "] " + name`.
+* **`Cashier.java`**: Calls `c.bill()` instead of `c.finish()`, delegating discount calculations to the customer.
+* **`CustomerManager.java`**: Removed order creation; passes `(name, random)` so customers initialize themselves. Spawns Critic on Turn 7 and VIP on Turn 13.
+* **`SystemUI.java`**: Uses `c` instead of `c.getName()` in queue and table displays to show polymorphic `[VIP]`/`[Critic]` tags.
+* **`test/test_victory.txt` & `README.md`**: Updated for Stage 2 customer mechanics and schedules.
+
+---
+
 ## Stage 2 Test Notes & Reproducible Runs
 
 All runs use the base setting with fixed seed `2002` set in `CustomerManager`. This generates deterministic customer arrivals and orders:
