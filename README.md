@@ -24,7 +24,7 @@ java -cp bin project.GameLoop
 ## Stage Transitions & Changes
 
 ### Transition: Stage 1 → Stage 2
-**Git Diff**: `git diff stage-1 HEAD`
+**Git Diff**: `git diff stage-1 stage-2`
 
 #### SOLID & Design Improvements
 * **Moved Desire Initialization (Polymorphism & SRP)**: 
