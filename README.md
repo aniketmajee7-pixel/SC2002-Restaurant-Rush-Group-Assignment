@@ -56,9 +56,9 @@ java -cp bin project.GameLoop
 **Git Diff**: `git diff stage-1 stage-2`
 
 #### SOLID & Design Improvements
-* **Moved Desire Initialization (Polymorphism & SRP)**: 
+* **Moved Desire Initialisation (Polymorphism & SRP)**: 
   * In Stage 1, `CustomerManager` created meal orders and passed them into `Customer`.
-  * In Stage 2, I moved desire initialization into `Customer` via `makeDesire(random)`. This gives much better polymorphism: subclasses like `CriticCustomer` can now easily override `makeDesire()` to pick their own orders (e.g. always Pasta) without `CustomerManager` having to know or care about meal preferences.
+  * In Stage 2, I moved desire Initialisation into `Customer` via `makeDesire(random)`. This gives much better polymorphism: subclasses like `CriticCustomer` can now easily override `makeDesire()` to pick their own orders (e.g. always Pasta) without `CustomerManager` having to know or care about meal preferences.
 * **Single Responsibility Principle (SRP)**:
   * `CustomerManager` only handles customer arrivals and queuing, not their orders.
   * `Customer` handles its own irritation rate, meal selection, discounts, and reactions.
