@@ -1,6 +1,6 @@
 package project;
 
-public enum MenuItem {
+public enum MenuItem implements Dish {
           SALAD("Salad",900,1),
           BURGER("Burger",1500,1),
           PASTA("Pasta",1800,2);

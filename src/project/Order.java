@@ -2,21 +2,30 @@ package project;
 
 public class Order {
     private OrderStatus status;
-    private MenuItem contents;
+    private Dish contents;
     private int cookTimeRequired;
     private int toBeEarned;
     private int tableNo;
 
-    public Order(MenuItem contents){
+    public Order(Dish contents){
         status = OrderStatus.UNPLACED;
         this.contents = contents;
         cookTimeRequired = contents.prepUnits();
-        toBeEarned = contents.priceCents();
     }
 
-    public void place(int tableNo){
+    //Price is locked when the order is taken
+    public void place(int tableNo, int price){
         status = OrderStatus.PREPARING;
         this.tableNo = tableNo;
+        toBeEarned = price;
+    }
+
+    public int getBasePrice(){
+        return contents.priceCents();
+    }
+
+    public int getPrice(){
+        return toBeEarned;
     }
 
     public OrderStatus getStatus() {

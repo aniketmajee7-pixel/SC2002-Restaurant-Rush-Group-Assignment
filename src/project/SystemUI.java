@@ -51,7 +51,8 @@ public class SystemUI {
     }
 
     public void startOfTurn(int turnNumber, int revenue, double avgSatisfaction,
-                            Queue<Customer> customerQueue, List<Table> tables, List<Order> orders) {
+                            Queue<Customer> customerQueue, List<Table> tables, List<Order> orders,
+                            int happyHourTurnsLeft, boolean happyHourAvailable) {
         clear();
         String avg = (avgSatisfaction >= 0) ? String.format("%.1f", avgSatisfaction) : "N/A";
         System.out.print("\nStart of turn " + turnNumber +
@@ -82,8 +83,26 @@ public class SystemUI {
         }
         System.out.println();
 
-        System.out.println("Available staff actions: Waiter [1], Chef [1], Cashier [1]");
+        if (happyHourTurnsLeft > 0) {
+            System.out.println("Happy Hour: ACTIVE (" + happyHourTurnsLeft + " turn(s) left, including this one)");
+        } else if (happyHourAvailable) {
+            System.out.println("Happy Hour: available (once per game)");
+        } else {
+            System.out.println("Happy Hour: used");
+        }
+        System.out.println("Available staff actions: Host [1], Waiter [1], Chef [1], Cashier [1]");
         prompt();
+    }
+
+    public boolean askHappyHour() {
+        System.out.println("Activate Happy Hour now? It lasts this turn and the next.");
+        System.out.println("1: Yes\n2: No");
+        return takeChoice(1, 2) == 1;
+    }
+
+    public void happyHourActive(int turnsLeft) {
+        System.out.println("Happy Hour is on (" + turnsLeft + " turn(s) left)! Orders taken now get 20% off, "
+                + "and waiting customers recover 15 satisfaction.");
     }
 
     public void endOfTurn(int turn, int served, List<Customer> dead, int revenue, double avgSatisfaction) {
@@ -110,7 +129,7 @@ public class SystemUI {
     }
 
     public void showOrder(Order o) {
-        System.out.println("The customer at table "+o.getTableNo()+" has placed an order of "+o+"!");
+        System.out.println("The customer at table "+o.getTableNo()+" has placed an order of "+o+" for "+convert(o.getPrice())+"!");
     }
 
     public int serveOrder(List<Order> orders) {

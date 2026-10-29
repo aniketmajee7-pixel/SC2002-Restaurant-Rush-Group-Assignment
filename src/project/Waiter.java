@@ -13,10 +13,12 @@ public class Waiter implements ControllableStaff{
         table.seat(customer);
         customer.makeOrderable();
     }
-    public Order order(Table t){
-        t.getCustomer().takeOrder();
-        Order o = t.getCustomer().getOrder();
-        o.place(t.getTableNo());
+    //VIP discount first (calculatePrice), then Happy Hour
+    public Order order(Table t, HappyHour happyHour){
+        Customer c = t.getCustomer();
+        c.takeOrder();
+        Order o = c.getOrder();
+        o.place(t.getTableNo(), happyHour.applyTo(c.calculatePrice()));
         return o;
     }
     public void serve(Order o, Table t){

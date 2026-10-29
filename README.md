@@ -21,6 +21,35 @@ java -cp bin project.GameLoop
 
 ---
 
+## Stage Overview
+
+**Repository:** https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment
+
+| Stage | Tag | Adds | New files | Changed files | Deleted |
+|:---:|:---:|:---|:---|:---|:---:|
+| 1. Basic operation | [`stage-1`](https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/tree/stage-1) | Regular customers, 3-item menu, Waiter, Chef, Cashier, full turn sequence, victory and defeat | All 17 source files (baseline) | — | — |
+| 2. Customer behaviour | [`stage-2`](https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/tree/stage-2) | VIP and Critic customers | `VIPCustomer`, `CriticCustomer` | `Customer`, `CustomerManager`, `Cashier`, `SystemUI`, `test_victory.txt` | None |
+| 3. New role and menu policy | [`stage-3`](https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/tree/stage-3) | Host, ComboMeal, Happy Hour | `Dish`, `ComboMeal`, `Host`, `HappyHour` | `MenuItem`, `Order`, `Customer`, `Waiter`, `LogicController`, `SystemUI`, both test files | None |
+
+**Compare links:**
+- Stage 1 → 2: https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/compare/stage-1...stage-2
+- Stage 2 → 3: https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/compare/stage-2...stage-3
+
+### Stage 1 Baseline
+| Class | Responsibility |
+|:---|:---|
+| `GameLoop` | Entry point; runs 18 turns then ends the game |
+| `LogicController` | Runs each turn's steps and validates manager choices |
+| `GameState` | Holds the queue, tables, customer record, active orders and revenue |
+| `SystemUI` | Displays state and reads the manager's input; no game rules |
+| `CustomerManager` | Arrival schedule and per-turn customer updates |
+| `Customer`, `Order`, `Table` | Domain objects for the restaurant |
+| `MenuItem`, `CustomerStatus`, `OrderStatus`, `ActionError` | Enums for the menu, states and error messages |
+| `Staff`, `ControllableStaff` | Interfaces for staff; `ControllableStaff` adds the choices the manager picks from |
+| `Waiter`, `Chef`, `Cashier` | Seat/order/serve, cook, and bill |
+
+---
+
 ## Stage Transitions & Changes
 
 ### Transition: Stage 1 → Stage 2
@@ -53,22 +82,51 @@ java -cp bin project.GameLoop
 * **`SystemUI.java`**: Uses `c` instead of `c.getName()` in queue and table displays to show polymorphic `[VIP]`/`[Critic]` tags.
 * **`test/test_victory.txt` & `README.md`**: Updated for Stage 2 customer mechanics and schedules.
 
+### Transition: Stage 2 → Stage 3
+**Git Diff**: `git diff stage-2 stage-3`
+
+#### Design Changes
+* **Price locked when the order is taken**: In Stage 2 the VIP discount was applied at payment (`Customer.bill()`). Happy Hour requires the price to be fixed when the order is taken, so the price is now calculated in `Waiter.order()` and stored by `Order.place()`. Stage 2 pricing results are unchanged.
+* **`Dish` interface (OCP, LSP)**: `Order` now holds a `Dish` instead of a `MenuItem`. Both `MenuItem` and `ComboMeal` implement `Dish`, so `Order`, `Chef`, `Waiter` and `SystemUI` handle single items and combos the same way.
+* **`HappyHour` as its own policy class (SRP)**: It tracks whether it has been used, how many turns are left, the 20% discount and the recovery amount. `LogicController` only asks it questions.
+* **`Host` (ISP)**: Implements `ControllableStaff` with only the actions it can take (Seat, Wait). Seating validation is shared between Host and Waiter through `LogicController.seatingProblem()`.
+
+#### Rules Chosen
+* **Combo choice**: Customers pick uniformly from a menu of 6 dishes (Salad, Burger, Pasta, Salad + Burger, Salad + Pasta, Burger + Pasta) using the seeded `Random`. Critics still always order Pasta.
+* **Turn order**: Happy Hour activation and recovery happen at the start of the turn, then Host, Waiter, Chef, Cashier. The Host acts before the Waiter, so the Waiter can take the order of a customer the Host seated that turn.
+* **Discount order**: VIP discount first, then Happy Hour, each rounded to the nearest cent (VIP Burger during Happy Hour: $15 × 0.9 × 0.8 = $10.80).
+
+#### File Summary
+* **`Dish.java` (New)**: Interface for anything that can be ordered (`getName()`, `priceCents()`, `prepUnits()`).
+* **`ComboMeal.java` (New)**: Two `MenuItem`s. Prep units are the sum; price is 90% of the combined price, rounded to the nearest cent.
+* **`Host.java` (New)**: Seats one queued customer per turn, in addition to the Waiter.
+* **`HappyHour.java` (New)**: Once per game, lasts 2 turns, 20% off orders taken while active, +15 satisfaction (max 100) for waiting customers at the start of each active turn.
+* **`MenuItem.java`**: Implements `Dish`.
+* **`Order.java`**: Holds a `Dish`; price is set in `place(tableNo, price)` instead of the constructor. Added `getBasePrice()` and `getPrice()`.
+* **`Customer.java`**: Menu includes the 3 combos. Added `calculatePrice()` (applies the customer's own discount) and `recover()`. `bill()` returns the locked price. The waiting check used by `tickPatience()` is now shared with `recover()` through `isWaiting()`.
+* **`Waiter.java`**: `order()` takes the `HappyHour` and locks the price (VIP discount, then Happy Hour).
+* **`LogicController.java`**: Added `host`, `happyHour`, `manageHappyHour()`, `manageHost()` and `seatingProblem()`. Waiter seating uses `seatingProblem()`.
+* **`SystemUI.java`**: Shows Happy Hour status and remaining turns, asks whether to activate it, lists the Host in staff actions, and shows the locked price when an order is placed.
+* **`test/test_victory.txt`, `test/test_defeat.txt`**: Updated for the Host and Happy Hour prompts. Stage 2 test notes are in the README at tag `stage-2`.
+
 ---
 
-## Stage 2 Test Notes & Reproducible Runs
+## Stage 3 Test Notes & Reproducible Runs
 
-All runs use the base setting with fixed seed `2002` set in `CustomerManager`. This generates deterministic customer arrivals and orders:
-- **Turn 1**: `[Regular] Mae` (Salad, $9.00)
-- **Turn 4**: `[Regular] Mae` (Salad, $9.00)
-- **Turn 7**: `[Critic] Lucille` (Pasta, $18.00)
-- **Turn 10**: `[Regular] George` (Burger, $15.00)
+All runs use the base setting with fixed seed `2002` set in `CustomerManager`. Arrivals and orders:
+- **Turn 1**: `[Regular] Mae` (Salad + Burger Combo, $21.60, 2 units)
+- **Turn 4**: `[Regular] Mae` (Salad + Burger Combo, $21.60, 2 units)
+- **Turn 7**: `[Critic] Lucille` (Pasta, $18.00, 2 units)
+- **Turn 10**: `[Regular] George` (Salad + Pasta Combo, $24.30, 3 units)
 - **Turn 13**: `[VIP] Buster` (Salad, $8.10 with 10% discount)
 - **Turn 16**: `[Regular] Tobias` (Salad, $9.00)
+
+Each turn asks, in order: Enter, Happy Hour (only until it is used), Host, Waiter, Chef, Enter.
 
 ---
 
 ### 1. Reproducible Defeat Run (Passivity Defeat)
-The manager chooses to `Wait` every single turn. Queued and seated customers lose patience according to their individual rates (Regular: 8/turn, Critic: 12/turn, VIP: 5/turn) and leave without paying.
+The manager never activates Happy Hour and chooses Wait for every staff member. Customers lose patience and leave without paying.
 
 **Expected Outcome (Turn 18):**
 - Paid customers: `0 (target 4)`
@@ -76,230 +134,44 @@ The manager chooses to `Wait` every single turn. Queued and seated customers los
 - Average Satisfaction: `N/A (target 60)`
 - Result: **YOU LOSE!**
 
-#### Fast Run via Piped Input:
 ```bash
 java -cp bin project.GameLoop < test/test_defeat.txt
 ```
 
-#### Manual Steps:
-On every turn, press Enter to pass the start/end of turn prompts, and select `4` (Wait for Waiter) and `2` (Wait for Chef):
-- Repeat for all 18 turns: `[Enter]` -> `4` -> `2` -> `[Enter]`
+Every turn: `[Enter]` -> `2` (no Happy Hour) -> `2` (Host Wait) -> `4` (Waiter Wait) -> `2` (Chef Wait) -> `[Enter]`
 
 ---
 
 ### 2. Reproducible Victory Run
-A strategy serving 5 customers (Mae, Mae, Critic Lucille, George, and VIP Buster) that handles Critic multi-unit cooking, speed bonus, and VIP billing.
+Uses the Host every time a customer arrives, two combos, and Happy Hour on turns 10-11.
 
 **Expected Outcome (Turn 18):**
 - Paid customers: `5 (target 4)`
-- Revenue: `$59.10 (target $45.00)`
-- Average Satisfaction: `81.0 (target 60)`
+- Revenue: `$88.74 (target $45.00)`
+- Average Satisfaction: `86.0 (target 60)`
 - Result: **YOU WIN!**
 
-#### Fast Run via Piped Input:
 ```bash
 java -cp bin project.GameLoop < test/test_victory.txt
 ```
 
-#### Turn-by-Turn Breakdown
-
-| Turn | Start Prompt | Waiter Action | Chef Action | End Prompt | Notes |
-|:---:|:---:|:---|:---|:---:|:---|
-| 1 | Enter | `1` (Seat Customer) | `2` (Wait) | Enter | Mae arrives, seated at Table 1 |
-| 2 | Enter | `2` -> `1` (Take Order: T1) | `1` -> `1` (Cook Salad) | Enter | Mae orders Salad (1 prep); Chef cooks to READY |
-| 3 | Enter | `3` -> `1` (Serve Order: T1) | `2` (Wait) | Enter | Mae is served (starts eating next turn) |
-| 4 | Enter | `1` (Seat Customer) | `2` (Wait) | Enter | Mae arrives, seated at Table 2; Mae (T1) ready to pay |
-| 5 | Enter | `2` -> `1` (Take Order: T2) | `1` -> `1` (Cook Salad) | Enter | Cashier bills Mae ($9.00), T1 freed; Chef cooks Salad to READY |
-| 6 | Enter | `3` -> `1` (Serve Order: T2) | `2` (Wait) | Enter | Mae (T2) is served |
-| 7 | Enter | `1` (Seat Customer) | `2` (Wait) | Enter | Critic Lucille arrives, seated at Table 1; Mae (T2) ready to pay |
-| 8 | Enter | `2` -> `1` (Take Order: T1) | `1` -> `1` (Cook Pasta) | Enter | Cashier bills Mae ($9.00), T2 freed; Critic orders Pasta; Chef cooks unit 1/2 |
-| 9 | Enter | `4` (Wait) | `1` -> `1` (Cook Pasta) | Enter | Chef finishes unit 2/2 -> Pasta READY |
-| 10 | Enter | `3` -> `1` (Serve Order: T1) | `2` (Wait) | Enter | Critic served! Satisfaction: 64 + 12 (bonus) = 76 |
-| 11 | Enter | `1` (Seat Customer) | `2` (Wait) | Enter | George arrives, seated at Table 2; Critic ready to pay |
-| 12 | Enter | `2` -> `1` (Take Order: T2) | `1` -> `1` (Cook Burger) | Enter | Cashier bills Critic ($18.00), T1 freed; Chef cooks Burger to READY |
-| 13 | Enter | `3` -> `1` (Serve Order: T2) | `2` (Wait) | Enter | George served; VIP Buster arrives |
-| 14 | Enter | `1` (Seat Customer) | `2` (Wait) | Enter | VIP Buster seated at Table 1; George ready to pay |
-| 15 | Enter | `2` -> `1` (Take Order: T1) | `1` -> `1` (Cook Salad) | Enter | Cashier bills George ($15.00), T2 freed; Chef cooks Salad to READY |
-| 16 | Enter | `3` -> `1` (Serve Order: T1) | `2` (Wait) | Enter | VIP Buster served |
-| 17 | Enter | `4` (Wait) | `2` (Wait) | Enter | VIP Buster eating; Tobias arrives |
-| 18 | Enter | `4` (Wait) | `2` (Wait) | Enter | Cashier bills VIP Buster ($8.10 with 10% off), T1 freed |
-
----
-
-### Quick Copy-Paste Inputs
-
-You can also copy and paste the raw text blocks below directly into the console:
-
-<details>
-<summary><b>Defeat Run Raw Inputs</b> (click to expand)</summary>
-
-```text
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-
-4
-2
-
-```
-</details>
-
-<details>
-<summary><b>Victory Run Raw Inputs</b> (click to expand)</summary>
-
-```text
-
-1
-2
-
-
-2
-1
-1
-1
-
-
-3
-1
-2
-
-
-1
-2
-
-
-2
-1
-1
-1
-
-
-3
-1
-2
-
-
-1
-2
-
-
-2
-1
-1
-1
-
-
-4
-1
-1
-
-
-3
-1
-2
-
-
-1
-2
-
-
-2
-1
-1
-1
-
-
-3
-1
-2
-
-
-1
-2
-
-
-2
-1
-1
-1
-
-
-3
-1
-2
-
-
-4
-2
-
-
-4
-2
-
-```
-</details>
+| Turn | Happy Hour | Host | Waiter | Chef | Notes |
+|:---:|:---:|:---|:---|:---|:---|
+| 1 | `2` | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | Host seats Mae at T1; she orders Salad + Burger Combo ($21.60) |
+| 2 | `2` | `2` Wait | `4` Wait | `1` -> `1` Cook | Combo READY |
+| 3 | `2` | `2` Wait | `3` -> `1` Serve | `2` Wait | Mae served |
+| 4 | `2` | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | Mae (2nd) seated at T2, orders combo; Mae (T1) ready to pay |
+| 5 | `2` | `2` Wait | `4` Wait | `1` -> `1` Cook | Cashier bills Mae $21.60 |
+| 6 | `2` | `2` Wait | `3` -> `1` Serve | `2` Wait | Mae (T2) served |
+| 7 | `2` | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | Critic seated at T1, orders Pasta |
+| 8 | `2` | `2` Wait | `4` Wait | `1` -> `1` Cook | Cashier bills Mae $21.60; Pasta READY |
+| 9 | `2` | `2` Wait | `3` -> `1` Serve | `2` Wait | Critic served at 76, +12 speed bonus = 88 |
+| 10 | `1` Activate | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | George seated at T2, orders Salad + Pasta Combo: $24.30 × 0.8 = $19.44 |
+| 11 | — | `2` Wait | `4` Wait | `1` -> `1` Cook | Happy Hour turn 2: George recovers 92 -> 100; Cashier bills Critic $18.00 |
+| 12 | — | `2` Wait | `4` Wait | `1` -> `1` Cook | Combo READY (3 units) |
+| 13 | — | `1` Seat | `3` -> `1` Serve | `2` Wait | VIP Buster seated at T1; George served |
+| 14 | — | `2` Wait | `2` -> `1` Take Order | `1` -> `1` Cook | Buster orders Salad: $8.10 (Happy Hour over) |
+| 15 | — | `2` Wait | `3` -> `1` Serve | `2` Wait | Cashier bills George $19.44; Buster served |
+| 16 | — | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | Tobias seated at T2, orders Salad |
+| 17 | — | `2` Wait | `3` -> `1` Serve | `2` Wait | Cashier bills Buster $8.10 |
+| 18 | — | `2` Wait | `4` Wait | `2` Wait | Tobias eating; cannot pay within 18 turns |

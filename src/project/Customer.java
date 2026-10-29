@@ -8,7 +8,11 @@ public class Customer {
     private Order desire;
     private CustomerStatus status;
     private int satisfaction;
-    private static final MenuItem[] menu = MenuItem.values();
+    private static final Dish[] menu = new Dish[]{
+            MenuItem.SALAD, MenuItem.BURGER, MenuItem.PASTA,
+            new ComboMeal(MenuItem.SALAD, MenuItem.BURGER),
+            new ComboMeal(MenuItem.SALAD, MenuItem.PASTA),
+            new ComboMeal(MenuItem.BURGER, MenuItem.PASTA)};
 
     //Random object is borrowed from Customer Manager so we don't have
     //to keep changig the seed in both classes
@@ -77,9 +81,13 @@ public class Customer {
         this.status = status;
     }
 
+    public int calculatePrice(){
+        return (int)(Math.rint(desire.getBasePrice()*getDiscount()));
+    }
+
     public int bill(){
         setStatus(CustomerStatus.PAID);
-        return (int)(Math.rint(desire.finish()*getDiscount()));
+        return desire.finish();
     }
 
     public void makeOrderable(){
@@ -105,11 +113,21 @@ public class Customer {
         }
     }
 
-    public void tickPatience() {
-        if (status == CustomerStatus.QUEUED ||
+    private boolean isWaiting() {
+        return status == CustomerStatus.QUEUED ||
                 status == CustomerStatus.READY_TO_ORDER ||
-                status == CustomerStatus.ORDERED) {
+                status == CustomerStatus.ORDERED;
+    }
+
+    public void tickPatience() {
+        if (isWaiting()) {
             irritate();
+        }
+    }
+
+    public void recover(int amount) {
+        if (isWaiting()) {
+            satisfaction = Math.min(100, satisfaction + amount);
         }
     }
 

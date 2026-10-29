@@ -13,6 +13,8 @@ public class LogicController {
     private Chef chef;
     private Waiter waiter;
     private Cashier cashier;
+    private Host host;
+    private HappyHour happyHour;
     private CustomerManager cm;
     private SystemUI ui;
     private GameState state;
@@ -23,6 +25,8 @@ public class LogicController {
         chef = new Chef();
         waiter = new Waiter();
         cashier = new Cashier();
+        host = new Host();
+        happyHour = new HappyHour();
         state = new GameState();
         cm = new CustomerManager();
         ui = new SystemUI();
@@ -45,15 +49,57 @@ public class LogicController {
             state.addCustomer(arrived);
         }
         ui.startOfTurn(currentTurn, state.getRevenue(), state.getAverageSatisfaction(),
-                state.getCustomerQueue(), state.getTables(), state.getActiveOrders());
+                state.getCustomerQueue(), state.getTables(), state.getActiveOrders(),
+                happyHour.getTurnsLeft(), happyHour.canActivate());
         //This does NOT violate OOP as it only passes immutable versions or copied objects
+        manageHappyHour();
+        manageHost();
         manageWaiter();
         manageChef();
         manageCashier();
         cm.update(state.getCustomerRecord());
+        happyHour.endTurn();
         //READY_TO_PAY set after cashier, since new ready to pay customers can't pay till next turn
         ui.endOfTurn(currentTurn, state.getServedCount(), state.reap(), state.getRevenue(), state.getAverageSatisfaction());
         //reap is a mutator method that kills enranged customers and removes killed orders
+    }
+
+    public void manageHappyHour() {
+        if (happyHour.canActivate() && ui.askHappyHour()) {
+            happyHour.activate();
+        }
+        if (happyHour.isActive()) {
+            for (Customer c : state.getCustomerRecord()) {
+                c.recover(HappyHour.RECOVERY);
+            }
+            ui.happyHourActive(happyHour.getTurnsLeft());
+        }
+    }
+
+    //Returns null if a queued customer can be seated, otherwise the reason they can't
+    private ActionError seatingProblem() {
+        if (state.getEmptyTable() == null) return ActionError.NO_VACANT_TABLE;
+        if (state.getCustomerQueue().isEmpty()) return ActionError.EMPTY_QUEUE;
+        return null;
+    }
+
+    public void manageHost() {
+        boolean worked = false;
+        while (!worked){
+            switch(ui.query(host)){
+                case 1:
+                    ActionError problem = seatingProblem();
+                    if (problem != null){
+                        ui.displayError(problem);
+                        break;
+                    }
+                    host.seat(state.deQueue(), state.getEmptyTable());
+                    worked = true;
+                    break;
+                default:
+                    worked = true;
+            }
+        }
     }
 
     public void manageWaiter() {
@@ -61,17 +107,12 @@ public class LogicController {
         while (!worked){
             switch(ui.query(waiter)){
                 case 1:
-                    Table table = state.getEmptyTable();
-                    if (table == null){
-                        ui.displayError(ActionError.NO_VACANT_TABLE);
+                    ActionError problem = seatingProblem();
+                    if (problem != null){
+                        ui.displayError(problem);
                         break;
                     }
-                    Customer customer = state.deQueue();
-                    if (customer == null){
-                        ui.displayError(ActionError.EMPTY_QUEUE);
-                        break;
-                    }
-                    waiter.seat(customer,table);
+                    waiter.seat(state.deQueue(), state.getEmptyTable());
                     worked = true;
                     break;
                 case 2:
@@ -80,7 +121,7 @@ public class LogicController {
                         ui.displayError(ActionError.NO_READY_CUSTOMER);
                         break;
                     }
-                    Order newOrder = waiter.order(temp.get(ui.takeOrder(temp) - 1));
+                    Order newOrder = waiter.order(temp.get(ui.takeOrder(temp) - 1), happyHour);
                     ui.showOrder(newOrder);
                     state.addOrder(newOrder);
                     worked = true;
