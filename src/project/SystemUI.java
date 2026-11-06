@@ -59,14 +59,14 @@ public class SystemUI {
                 "!\tRevenue: " + convert(revenue) + "\tAverage Satisfaction (Paid Customers): " + avg);
         System.out.print("\nCustomer Queue: [");
         for (Customer c : customerQueue) {
-            System.out.print("| " + c + "  (Satisfaction: " + c.getSatisfaction() + ") |");
+            System.out.print("| " + c + "  (Satisfaction: " + c.getSatisfaction() + ")" + danger(c) + " |");
         }
         System.out.println("]\nTotal Waiting: " + customerQueue.size() + " people");
         System.out.println("Tables:");
         for (Table t : tables) {
             if (t.isOccupied()) {
                 Customer c = t.getCustomer();
-                System.out.println("Table " + t.getTableNo() + ": Occupied by " + c + " (Satisfaction: " + c.getSatisfaction() + ", Status: " + c.getStatus() + ")");
+                System.out.println("Table " + t.getTableNo() + ": Occupied by " + c + " (Satisfaction: " + c.getSatisfaction() + ", Status: " + c.getStatus() + ")" + danger(c));
                 System.out.println("Order Status: "+t.getCustomer().getOrder().getStatus());
             } else {
                 System.out.println("Table " + t.getTableNo() + ": Empty");
@@ -92,6 +92,50 @@ public class SystemUI {
         }
         System.out.println("Available staff actions: Host [1], Waiter [1], Chef [1], Cashier [1]");
         prompt();
+    }
+
+    // Additional feature: warns the manager about customers who are about to walk out.
+    private String danger(Customer c) {
+        int turns = c.turnsUntilLeaving();
+        if (turns == 1) return "  [!] leaves at the end of this turn";
+        if (turns == 2) return "  [!] leaves in 2 turns";
+        return "";
+    }
+
+    // Additional feature: end-of-game receipt, one line per customer who came in.
+    public void showReceipt(List<Customer> customers) {
+        System.out.println();
+        System.out.println("================================== RECEIPT ==================================");
+        System.out.println(String.format("%-20s %-22s %8s %8s %6s  %s",
+                "Customer", "Order", "Menu", "Paid", "Satis.", "Notes"));
+        System.out.println("-----------------------------------------------------------------------------");
+        int collected = 0;
+        int lost = 0;
+        for (Customer c : customers) {
+            Order o = c.getOrder();
+            String paid = "-";
+            String notes;
+            if (c.getStatus() == CustomerStatus.PAID) {
+                paid = convert(o.getPrice());
+                collected += o.getPrice();
+                notes = "";
+                if (c.calculatePrice() < o.getBasePrice()) notes += c.getType() + " discount";
+                if (o.getPrice() < c.calculatePrice()) notes += (notes.isEmpty() ? "" : ", ") + "Happy Hour";
+            } else if (c.getStatus() == CustomerStatus.KILLED) {
+                notes = "Left without paying";
+                if (o.getPrice() > 0) {
+                    notes += " (order cancelled)";
+                    lost += o.getPrice();
+                }
+            } else {
+                notes = "Still in the restaurant (" + c.getStatus() + ")";
+            }
+            System.out.println(String.format("%-20s %-22s %8s %8s %6d  %s",
+                    c, o.getContents(), convert(o.getBasePrice()), paid, c.getSatisfaction(), notes));
+        }
+        System.out.println("-----------------------------------------------------------------------------");
+        System.out.println("Total collected: " + convert(collected)
+                + (lost > 0 ? "   Lost to walkouts: " + convert(lost) : ""));
     }
 
     public boolean askHappyHour() {

@@ -175,3 +175,18 @@ java -cp bin project.GameLoop < test/test_victory.txt
 | 16 | — | `1` Seat | `2` -> `1` Take Order | `1` -> `1` Cook | Tobias seated at T2, orders Salad |
 | 17 | — | `2` Wait | `3` -> `1` Serve | `2` Wait | Cashier bills Buster $8.10 |
 | 18 | — | `2` Wait | `4` Wait | `2` Wait | Tobias eating; cannot pay within 18 turns |
+
+---
+
+## Additional Features
+
+Added after Stage 3 on the [`additional-features`](https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/tree/additional-features) tag. The stage tags are unchanged, and no game rule changed: the victory, defeat and sequence-diagram runs give exactly the same results as at `stage-3`.
+
+**Compare:** https://github.com/aniketmajee7-pixel/SC2002-Restaurant-Rush-Group-Assignment/compare/stage-3...additional-features
+
+| Feature | What the player sees | Design |
+|:---|:---|:---|
+| Patience warning | On the start-of-turn screen, a customer who is about to walk out is flagged with `[!] leaves in 2 turns` or `[!] leaves at the end of this turn`. | New `Customer.turnsUntilLeaving()` works the answer out from `getIrritation()`, so VIP (5) and Critic (12) customers are handled by polymorphism with no type checks. It returns -1 for customers who are not losing patience. `SystemUI` only displays it. |
+| End-of-game receipt | After the result, one line per customer: order, menu price, price paid, final satisfaction, and notes (VIP discount, Happy Hour, left without paying, or still in the restaurant), with the total collected and revenue lost to walkouts. | New `SystemUI.showReceipt(List<Customer>)`, called from `LogicController.endGame()`. It only reads the locked prices and statuses that `Order` and `Customer` already hold, and the discount label comes from `getType()`. |
+
+**Files changed:** `Customer` (new `turnsUntilLeaving()`), `SystemUI` (warnings and `showReceipt()`), `LogicController` (one call in `endGame()`).

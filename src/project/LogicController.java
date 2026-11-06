@@ -180,6 +180,7 @@ public class LogicController {
                 && avgSatisfaction >= TARGET_SATISFACTION;
 
         ui.showResult(paid, revenue, avgSatisfaction, victory);
+        ui.showReceipt(state.getCustomerRecord());
     }
 }
 

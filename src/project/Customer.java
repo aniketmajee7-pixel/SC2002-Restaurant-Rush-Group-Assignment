@@ -131,6 +131,15 @@ public class Customer {
         }
     }
 
+    // Additional feature: how many more turns this customer will wait before walking out,
+    // if nothing changes. 1 means they leave at the end of this turn.
+    // Uses getIrritation(), so VIP and Critic customers get the right answer automatically.
+    // Returns -1 when the customer is not losing patience (being served, eating, paying or gone).
+    public int turnsUntilLeaving() {
+        if (!isWaiting()) return -1;
+        return (satisfaction + getIrritation() - 1) / getIrritation();
+    }
+
     @Override
     public String toString() {
         return "[" + getType() + "] " + name;
